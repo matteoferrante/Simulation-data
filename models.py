@@ -1,5 +1,5 @@
 import torch.nn.functional as F
-from torch.optim import Adam, SGD
+from torch.optim import Adam
 
 import pytorch_lightning as pl
 from torchmetrics import Accuracy
@@ -18,6 +18,7 @@ class BaseModule(pl.LightningModule):
 
         # initialize helper metric objects
         self.train_acc = Accuracy(num_classes=num_classes)
+        self.val_acc = Accuracy(num_classes=num_classes)
         self.test_acc = Accuracy(num_classes=num_classes)
     
     def forward(self, x):        
@@ -45,15 +46,15 @@ class BaseModule(pl.LightningModule):
         
         return loss
     
-    # def validation_step(self, val_batch, batch_idx):
-    #     x, y = val_batch
+    def validation_step(self, val_batch, batch_idx):
+        x, y = val_batch
 
-    #     x = self(x.view(x.shape[0], -1))
-    #     x = F.softmax(x, dim=-1)
+        x = self(x)
+        x = F.softmax(x, dim=-1)
         
-    #     self.val_acc(x, y)
+        self.val_acc(x, y)
 
-    #     self.log('val_acc', self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log('val_acc', self.val_acc, on_step=False, on_epoch=True, prog_bar=True)
 
     def test_step(self, test_batch, batch_idx):
         x, y = test_batch
